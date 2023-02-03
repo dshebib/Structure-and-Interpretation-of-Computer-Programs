@@ -1,0 +1,105 @@
+; Ex 1.3
+(define (SofSq a b) (+ (* a a) (* b b)))
+(define (ex_13 a b c) (sofsq (max x y) (max (min x y) z)))
+
+; ex 1.4
+; the operator is a compound expression determining what 
+; procedure will be carried out on the operands.
+(define (a-plus-abs-b a b)
+    ((if (> b 0) + -) a b))
+
+; ex 1.5
+(define (p) (p))
+(define (test x y) 
+    (if (= x 0) 0 y))
+;(test 0 (p))
+
+;If the interpreter uses normal-order evaluation, the 
+; interpreter will expand the expression to if t 0 (p)
+; which will immediately evaluate to 0. otherwise, it will
+; first attempt to evaluate the second argument (to avoid
+; having to do so again), which will hang infinitely.
+
+; Ex 1.6
+;The compiler will hang for the same reason as above,
+; the new-if will attempt to first evaluate the consequent
+; and the alternative expressions before running the predicate
+; because it is user-defined.
+
+; Ex 1.7
+
+; Ex 1.8
+
+; Ex 1.9
+;recursive
+;(+ 4 5)
+;(inc (+ 3 5)
+;...
+;(inc (inc (inc (inc 5))))
+
+;iterative
+;(+ 4 5)
+;(+ 3 6)
+;...
+;(+ 0 9)
+;9
+
+; Ex 1.10
+(define (A x y)
+(cond ((= y 0) 0)
+((= x 0) (* 2 y))
+((= y 1) 2)
+(else (A (- x 1) (A x (- y 1))))))
+
+;(A 0 n) comes out to 2*n
+;(A 1 n) comes out to 2^n
+;(A 2 n) comes out to 2^2^2^... n times
+; the last one is literally just 5n^2
+
+; Ex 1.11
+; f(n) = f(n-1) + 2*f(n-2) + 3*f(n-3)
+; Recorsively
+(define (ex11_r n) (cond ((= n 2) 2) ((= n 1) 1) ((= n 0) 0) (else (+ (+ (* 2 (ex11_r (- n 2))) (* 3 (ex11_r (- n 3)))) (ex11_r (- n 1))))))
+; obviously very inefficient way
+
+;iteratively
+(define (ex11_i n) 
+    (define (ex11_bc x) (cond ((= x 2) 2) ((= x 1) 1) ((= x 0) 0) (else -1)))
+    (define (ex11_iter count a b c) 
+        (define (rec_fn a b c) (+ (* 3 a) (* 2 b) c))
+     (if (= count 3) (rec_fn a b c) 
+         (ex11_iter (- count 1) b c (rec_fn a b c))))
+ (if (< n 3) (ex11_bc n) 
+     (ex11_iter n 0 1 2)))
+
+
+;Ex 1.16
+(define (isOdd n) (= (remainder n 2) 1))
+(define (isEven n) (= (remainder n 2) 0))
+
+(define (fast-exp b n) 
+    (define (fast-exp_iter b n)
+        (cond ((< n 0) -1)
+            ((= n 0) 1)
+            ((= n 1) b)
+            ((isOdd n) (* b (fast-exp_iter b (- n 1))))
+            (else (square (fast-exp_iter b (/ n 2))))))
+(fast-exp_iter b n))
+           
+;Ex 1.19
+(define (fast-fib n) (fib-iter 1 0 0 1 n))
+(define (fib-iter a b p q count) 
+    (cond ((= count 0 ) b)
+        ((isEven count) (fib-iter a b
+            (+ (* p p) (* q q))
+            (+ (* q q) (* 2 p q))
+            (/ count 2)))
+        (else (fib-iter (+ (* b q) (* a q) (* a p))
+            (+ (* b p) (* a q))
+            p
+            q
+            (- count 1)))))
+
+;Ex. 1.41
+(define (double x) (x x))
+

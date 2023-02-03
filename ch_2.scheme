@@ -1,0 +1,466 @@
+;Base ops
+(define nil `())
+(define (avg x y) (/ (+ x y ) 2))
+(define (inc x) (+ x 1))
+(define (dec x) (- x 1))
+(define (square x) (* x x))
+(define (isOdd n) (= (remainder n 2) 1))
+(define (isEven n) (= (remainder n 2) 0))
+(define (pow b n) 
+    (define (fast-exp_iter b n)
+        (cond ((< n 0) -1)
+            ((= n 0) 1)
+            ((= n 1) b)
+            ((isOdd n) (* b (fast-exp_iter b (- n 1))))
+            (else (square (fast-exp_iter b (/ n 2))))))
+(fast-exp_iter b n))
+(define (mod a b) (remainder a b))
+(define true #t)
+(define false #f)
+
+;Ex 2.1
+(define (numer x) (car x))
+(define (denom x) (cdr x))
+
+(define (make-rat n d)
+    (let ((g (gcd n d)) 
+        (n_n (if (< n 0) (if (< d 0) (* -1 n) n) (if (< d 0) (* -1 n) n)))
+        (d_n (abs d)))
+        (cons (/ n_n g) (/ d_n g))))
+
+(define one-third (make-rat 1 3))
+(define one-half (make-rat 1 2))
+(define (print-rat x)
+    (newline)
+    (display (numer x))
+    (display "/")
+    (display (denom x)))
+
+;Ex 2.2
+
+(define (print-point p)
+    (newline)
+    (display "[")
+    (display (x-point p))
+    (display ",")
+    (display (y-point p))
+    (display "]"))
+
+(define (make-point x y) (cons x y))
+(define (x-point p) (car p))
+(define (y-point p) (cdr p))
+(define (make-segment p1 p2) (cons p1 p2))
+(define (start-segment s) (car s))
+(define (end-segment s) (cdr s))
+(define (midpoint s)
+    (define (x1 s) (x-point (start-segment s)))
+    (define (y1 s) (y-point (start-segment s)))
+    (define (x2 s) (x-point (end-segment s)))
+    (define (y2 s) (y-point (end-segment s)))
+
+    (make-point (avg (x1 s) (x2 s)) (avg (y1 s) (y2 s))))
+
+;Ex 2.4
+(define (consM x y)
+    (lambda (m) (m x y)))
+
+(define (carM z)
+    (z (lambda (p q) p)))
+
+(define (cdrM z)
+    (z (lambda (p q) q)))
+
+;Ex 2.5
+(define (consI a b)
+    (* (pow 2 a) (pow 3 b)))
+
+(define (carI X) 
+    (define (divR X i)
+        (if (= (mod X 2) 0) 
+            (divR (/ X 2) (inc i))
+            i))
+    (divR X 0))
+
+(define (cdrI X) 
+    (define (divR X i)
+        (if (= (mod X 3) 0) 
+            (divR (/ X 3) (inc i))
+            i))
+    (divR X 0))
+
+;Ex 2.6 
+(define zeroF 
+    (lambda (f) (lambda (x) x)))
+(define (add-1F n)
+    (lambda (f) (lambda (x) (f ((n f) x)))))
+(define oneF 
+    (lambda (f) (lambda (x) (f x))))
+(define twoF 
+    (lambda (f) (lambda (x) (f (f x)))))
+(define (addF m n)
+    (lambda (f) (lambda (x) ((m f) ((n f) x)))))
+;this is interesting but the lack of verifiability is impractical
+
+;Ex 2.7, 2.8
+(define (make-interval a b) (cons a b))
+(define (upper a) (car a))
+(define (lower a) (cdr a))
+(define (sub-interval a b) (make-interval 
+    (- (lower a) (upper b))
+    (- (upper a) (lower b))))
+
+;Ex 2.9
+;After doing this in chemistry for years,
+;simply do not have the energy to explicitly implement
+
+;Ex 2.12
+(define (make-center-percent c p) (make-interval
+    (- c (* c p))
+    (+ c (* c p))))
+(define (center n) (avg (upper n) (lower n)))
+(define (percent n) 
+    (/ (- (upper n) (center n)) (center n)))
+
+;Ex 2.13
+;Upper = (c_1 + c_1*p_1) * (c_2 + c_2*p_2) = c_1*c_2 + c_1*c_2*p_2 + c_1*c_2*p_1 + [quadratic terms of p ignored if p << c]
+;      = c_1*c_2*(1 + p_1 + p_2) therefore p_12 = p_1 + p_2
+
+;Ex 2.14
+;in percentage form using error propagation rules the extra operations in the first form
+; result in sqrt(2)X percentage error in the final answer.
+
+;Ex 2.15
+;minimize total number of operations to minimize propagated error.
+
+;Ex 2.17
+(define l1 (list 1 2 3 4))
+(define (last-pair l) 
+    (if (null? (cdr l)) l (last-pair (cdr l))))
+
+(define (append l1 l2) 
+    (if (null? l1) l2
+        (cons (car l1) (append (cdr l1) l2))))
+
+;Ex 2.18
+(define (reverse l) 
+    (if (null? (cdr l)) l
+        (append (reverse (cdr l)) (cons (car l) ()))))
+
+;Ex 2.19
+;Order doesn't matter because this is an exhaustive search
+(define (cc amount coin-values)
+    (define (first-denom coin-values) (car coin-values))
+    (define (except-first-denom coin-values) (cdr coin-values))
+    (define (no-more? coin-values) (null? coin-values))
+    (cond ((= amount 0) 1)
+        ((or (< amount 0) (no-more? coin-values)) 0)
+        (else
+            (+ (cc amount (except-first-denom coin-values))
+                (cc (- amount (first-denom coin-values)) coin-values)))))
+
+;Ex 2.20
+(define (same-parity x . l) 
+    (define (sp_iter p l)
+        (cond ((null? l) l)
+            ((= (mod (car l) 2) p) (cons (car l) (sp_iter p (cdr l))))
+            (else (sp_iter p (cdr l)))))
+    (cons x (sp_iter (mod x 2) l)))
+
+;Ex 2.21
+(define (square_list1 l) 
+    (if (null? l) l
+        (cons (square (car l)) (square_list1 (cdr l)))))
+
+(define (square_list l)
+    (map square l))
+
+;Ex 2.22
+;This calls recursion first and so goes to the end of the list first
+
+;Ex 2.23
+(define (for_each f l) (cond 
+    ((null? l) ()) 
+    ((f (car l)) (for_each f (cdr l)))
+    (else (for_each f (cdr l)))))
+
+;Ex 2.27    
+(define l2 (list (list 1 2) (list 3 4)))
+(define (deep_reverse l) 
+    (if (null? l) l
+        (append (deep_reverse (cdr l)) 
+            (if (pair? (car l)) (list (deep_reverse (car l))) (cons (car l) ())))))
+
+;Ex 2.28
+(define (inorder t) 
+        (cond ((null? t) ())
+            ((not (pair? t)) (list t))
+            (else (append (inorder (car t)) (inorder (cdr t))))))
+
+;Ex 2.29
+(define (make_mobil l r) (list l r))
+(define (make_branch len struct) (list len struct))
+(define (l_branch m) (car m))
+(define (r_branch m) (car (cdr m)))
+(define (branch_len b) (if (pair? (car b)) () (car b)))
+(define (branch_struct b) (if (leaf? (cdr b)) (car (cdr b)) (cdr b)))
+
+(define (is_branch? b) (and (pair? b) (not (pair? (car b))) (not (null? (car b)))))
+(define (leaf? n) (and (pair? n) (not (null? (car n))) (null? (cdr n)) (not (pair? (car n)))))
+(define (is_weighted? b) (and (is_branch? b) (integer? (branch_struct b))))
+(define (is_mobil? b) (and (not (is_branch? b)) (not (null? b)) (not (integer? b))))
+
+(define m1 (make_mobil
+    (make_branch 4 6)
+    (make_branch 5
+        (make_mobil
+            (make_branch 3 7)
+            (make_branch 9 8)))))
+
+(define (total_weight m) 
+    (cond ((not (pair? m)) 0)
+        ((is_weighted? m) (branch_struct m))
+        (else (+ (total_weight (l_branch m)) (total_weight (r_branch m))))))
+
+(define (is_balanced m) 
+    (define (torque b) 
+        (* (branch_len b) (total_weight b)))
+        
+    (cond ((is_branch? m) (is_balanced (branch_struct m)))
+        ((is_mobil? m) 
+            (and (= (torque (l_branch m)) (torque (r_branch m))) (is_balanced (l_branch m)) (is_balanced (r_branch m))))
+        (else #t)))
+
+;(define (make_mobil l r) (cons l r))
+;(define (make_branch len struct) (cons len struct))
+
+;It still works :)
+
+;Ex 2.30/2.31
+(define (tree-map f t)
+    (map (lambda (t) 
+        (if (pair? t) (tree-map f t) (f t)))
+    t))
+
+(define (square-tree t) (tree-map square t))
+
+;Ex 2.32
+(define (subsets s)
+    (if (null? s) (list nil)
+        (let ((rest (subsets (cdr s))))
+            (append rest (map (lambda (u) (cons (car s) u)) rest)))))
+
+
+(define (filter predicate sequence) 
+    (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+            (cons (car sequence) (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+(define (accumulate op initial sequence)
+    (if (null? sequence) initial
+        (op (car sequence) 
+            (accumulate op initial (cdr sequence)))))
+
+;Ex 2.33
+(define (map1 p sequence) 
+    (accumulate (lambda (x y) (cons (p x) y)) nil sequence))
+
+(define (append1 seq1 seq2) 
+    (accumulate cons (accumulate cons nil seq2) seq1))
+
+(define (length sequence)
+    (accumulate (lambda (x y) (+ y 1)) 0 sequence))
+
+;Ex 2.34
+(define (horner-eval x coefficients) 
+    (accumulate (lambda (this-coeff higher-terms) (+ (* x higher-terms) this-coeff))
+        0
+        coefficients))
+
+;Ex 2.35
+(define (count-leaves t)
+    (accumulate + 0 
+        (map (lambda (x) (if (pair? x) (count-leaves x) 1)) t)))
+
+;Ex 2.36
+(define (accumulate-n op init seqs) 
+    (if (null? (car seqs)) 
+        nil
+        (cons (accumulate op init (map car seqs))
+            (accumulate-n op init (map cdr seqs)))))
+
+;Ex 2.37
+(define mat1 (list (list 1 2 3 4) (list 4 5 6 6) (list 7 8 9 7)))
+(define vec1 (list 1 1 1 1))
+
+(define (dot-product v w) 
+    (accumulate + 0 (map * v w)))
+
+;This assumes a row vector and does not check size
+(define (matrix-*-vector m v) 
+    (map (lambda (mi v) (* (accumulate + 0 mi) v)) m v))
+
+(define (transpose mat)
+    (accumulate-n cons nil mat))
+
+;TODO come back to this 
+(define (matrix-*-matrix m n) 
+    (let ((cols (transpose n)))
+        (map (lambda (ri) (accumulate-n dot-product (list ri) cols)) m)))
+
+;Ex 2.38
+;Op must be symmetrical
+(define (fold-left op initial sequence)
+    (define (iter result rest)
+        (if (null? rest)
+            result
+            (iter (op result (car rest))
+                (cdr rest))))
+    (iter initial sequence))
+
+;Ex 2.39
+(define (rev1 sequence) 
+    (accumulate (lambda (x y) (append y (list x))) nil (list 1 2 3 4)))
+
+(define (rev2 sequence) 
+    (fold-left (lambda (x y) (append (list y) x) nil (list 1 2 3 4))))
+
+
+(define (enumerate-interval i j) 
+    (cond ((= i j) (list j))
+          ((< j i) nil)
+        ((cons i (enumerate-interval (+ i 1) j)))))
+
+(define (flatmap proc seq)
+    (accumulate append nil (map proc seq)))
+
+(define (remove item sequence) 
+    (filter (lambda (x) (not (= x item))) sequence))
+
+(define (permutations s)
+    (if (null? s) (list nil)
+        (flatmap (lambda (x)
+            (map (lambda (p) (cons x p))
+                (permutations (remove x s))))
+            s)))
+
+;Ex 2.40
+(define (unique-pairs n) 
+    (flatmap (lambda (i) 
+        (map (lambda (j) (list i j))
+            (enumerate-interval 1 i)))
+    (enumerate-interval 1 n)))
+
+;Ex 2.41
+(define (permute-sum n s)
+    (define (pair-sums? p s) 
+        (= (+ (car p) (cadr p)) s))
+    (filter (lambda (p) (pair-sums? p s)) (unique-pairs n)))
+
+;Ex 2.42
+(define (contains-pair? set p) 
+    (there-exists? set (lambda (i) (and (pair? i) (and (= (car p) (car i)) (= (cdr p) (cdr i)))))))
+(define (set-intersects? set1 set2)
+    (there-exists? (map (lambda (p) (contains-pair? set2 p)) set1) (lambda (x) x)))
+    
+(define (queens board-size)
+    (define empty-board nil)
+    (define (safe? k positions)
+        (define (generate-backwards-collisions position) 
+            (define (generate-horiz position) 
+                (map (lambda (col) (cons col (cdr position))) (enumerate-interval 1 (dec (car position)))))
+            (define (generate-diags position)
+                (define (generate-diags-iter k_i position)
+                    (if (>= k_i (car position)) nil
+                        (append (list (cons (- (car position) k_i) (+ (cdr position) k_i))
+                                (cons (- (car position) k_i) (- (cdr position) k_i))) (generate-diags-iter (inc k_i) position))))
+                (generate-diags-iter 1 position))
+        (append (generate-horiz position) (generate-diags position)))
+        (let ((position (car (last-pair positions))))
+            (not (set-intersects? positions (generate-backwards-collisions position)))))
+            
+    (define (adjoin-position new-row k rest-of-queens)
+        (append rest-of-queens (list (cons k new-row))))
+
+    (define (queen-cols k)
+        (if (= k 0)
+            (list empty-board)
+            (filter (lambda (positions) (safe? k positions))
+                (flatmap (lambda (rest-of-queens) 
+                    (map (lambda (new-row) (adjoin-position new-row k rest-of-queens)) 
+                        (enumerate-interval 1 board-size))) 
+                    (queen-cols (- k 1))))))
+    (queen-cols board-size))
+
+;Ex 2.43
+;Our solution attempts to add a new queen to each valid board state of (k-1) queens. Louis' solution first generates all potential board states
+;contianing a queen in each row before adding a new queen and filtering them. Because our solution filters the positions for each k, it considers
+;far fewer board states and eliminates some repetition.
+;Given that each placed queen invalidates two spots in the next column for a given board state (horizontal and lower diagonal), including
+;all board states would result in at least a 2^T slower algorithm
+;More tightly, our solution is approx n! whereas Louis' is n^n where n is board size
+
+;Ex 2.54
+(define (equal? a b)
+    (cond ((and (null? a) (null? b)) #t)
+        ((and (not (list? a)) (not (list? b))) (eq? a b))
+        ((and (list? a) (list? b)) (and (eq? (car a) (car b)) (equal? (cdr a) (cdr b))))
+        (else #f)))
+
+
+
+(define (element-of-set? x set)
+    (cond ((null? set) false)
+    ((equal? x (car set)) true)
+    (else (element-of-set? x (cdr set)))))
+
+(define (adjoin-set x set)
+    (if (element-of-set? x set) set
+        (cons x set)))
+
+(define (intersection-set set1 set2)
+    (cond ((or (null? set1) (null? set2)) '())
+        ((element-of-set? (car set1) set2)
+            (cons (car set1) (intersection-set (cdr set1) set2)))
+        (else (intersection-set (cdr set1) set2))))
+
+(define s1 (list 'a 'b 'c))
+(define s2 (list 'a 'b 'c 'd))
+(define s3 (list 'e 'f))
+(define s4 '())
+
+;Ex 2.59
+(define (union-set set1 set2)
+    (cond ((null? set1) set2)
+        ((null? set2) set1)
+        ((list? set1) (union-set (cdr set1) (adjoin-set (car set1) set2)))
+        (else (adjoin-set set1 set2))))
+
+;Ex 2.60
+;This representation is much less efficient for all cases except union-set and adjoin-set, which can be implemented in constant time
+;This could be useful in a use-case where only unions and adjoins are expected to occur
+
+;Ex 2.61
+(define (adjoin-set-ordered x s)
+    (define (adjoin-set-helper x s s_pre)
+        (if (> (car s) x) 
+            (if (null? (cadr s)) (append s (list x))
+                (append (append s (list x)) s_pre))
+            (adjoin-set-helper x (append s_pre (list (car s))))))
+    (if (element-of-set? x s) s
+        (adjoin-set-helper x s nil)))
+
+;Ex 2.62
+(define (union-set-ordered s1 s2) 
+    (cond ((null? s1) s2)
+        ((null? s2) s1)
+        (else (let ((x1 (car s1)) (x2 (car s2)))
+            (cond ((= x1 x2) (cons x1 
+                (union-set-ordered (cdr s1) (cdr s2))))
+                ((< x1 x2)
+                    (if (> x1 (cadr s2)) (append (list x2 x1) (union-set-ordered (cdr s1) s2))
+                        (cons x2 (union-set-ordered s1 (cdr s2)))))
+                (else (if (> x2 (cadr s1)) (append (list x1 x2) (union-set-ordered s1 (cdr s2)))
+                        (cons x1 (union-set-ordered (cdr s1) s2)))))))))
+
+;Ex 2.63
+
