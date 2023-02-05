@@ -6,7 +6,7 @@
 (define (square x) (* x x))
 (define (isOdd n) (= (remainder n 2) 1))
 (define (isEven n) (= (remainder n 2) 0))
-(define (pow b n) 
+(define (pow b n)
     (define (fast-exp_iter b n)
         (cond ((< n 0) -1)
             ((= n 0) 1)
@@ -23,7 +23,7 @@
 (define (denom x) (cdr x))
 
 (define (make-rat n d)
-    (let ((g (gcd n d)) 
+    (let ((g (gcd n d))
         (n_n (if (< n 0) (if (< d 0) (* -1 n) n) (if (< d 0) (* -1 n) n)))
         (d_n (abs d)))
         (cons (/ n_n g) (/ d_n g))))
@@ -74,28 +74,28 @@
 (define (consI a b)
     (* (pow 2 a) (pow 3 b)))
 
-(define (carI X) 
+(define (carI X)
     (define (divR X i)
-        (if (= (mod X 2) 0) 
+        (if (= (mod X 2) 0)
             (divR (/ X 2) (inc i))
             i))
     (divR X 0))
 
-(define (cdrI X) 
+(define (cdrI X)
     (define (divR X i)
-        (if (= (mod X 3) 0) 
+        (if (= (mod X 3) 0)
             (divR (/ X 3) (inc i))
             i))
     (divR X 0))
 
-;Ex 2.6 
-(define zeroF 
+;Ex 2.6
+(define zeroF
     (lambda (f) (lambda (x) x)))
 (define (add-1F n)
     (lambda (f) (lambda (x) (f ((n f) x)))))
-(define oneF 
+(define oneF
     (lambda (f) (lambda (x) (f x))))
-(define twoF 
+(define twoF
     (lambda (f) (lambda (x) (f (f x)))))
 (define (addF m n)
     (lambda (f) (lambda (x) ((m f) ((n f) x)))))
@@ -105,7 +105,7 @@
 (define (make-interval a b) (cons a b))
 (define (upper a) (car a))
 (define (lower a) (cdr a))
-(define (sub-interval a b) (make-interval 
+(define (sub-interval a b) (make-interval
     (- (lower a) (upper b))
     (- (upper a) (lower b))))
 
@@ -118,7 +118,7 @@
     (- c (* c p))
     (+ c (* c p))))
 (define (center n) (avg (upper n) (lower n)))
-(define (percent n) 
+(define (percent n)
     (/ (- (upper n) (center n)) (center n)))
 
 ;Ex 2.13
@@ -134,15 +134,15 @@
 
 ;Ex 2.17
 (define l1 (list 1 2 3 4))
-(define (last-pair l) 
+(define (last-pair l)
     (if (null? (cdr l)) l (last-pair (cdr l))))
 
-(define (append l1 l2) 
+(define (append l1 l2)
     (if (null? l1) l2
         (cons (car l1) (append (cdr l1) l2))))
 
 ;Ex 2.18
-(define (reverse l) 
+(define (reverse l)
     (if (null? (cdr l)) l
         (append (reverse (cdr l)) (cons (car l) ()))))
 
@@ -159,7 +159,7 @@
                 (cc (- amount (first-denom coin-values)) coin-values)))))
 
 ;Ex 2.20
-(define (same-parity x . l) 
+(define (same-parity x . l)
     (define (sp_iter p l)
         (cond ((null? l) l)
             ((= (mod (car l) 2) p) (cons (car l) (sp_iter p (cdr l))))
@@ -167,7 +167,7 @@
     (cons x (sp_iter (mod x 2) l)))
 
 ;Ex 2.21
-(define (square_list1 l) 
+(define (square_list1 l)
     (if (null? l) l
         (cons (square (car l)) (square_list1 (cdr l)))))
 
@@ -178,20 +178,20 @@
 ;This calls recursion first and so goes to the end of the list first
 
 ;Ex 2.23
-(define (for_each f l) (cond 
-    ((null? l) ()) 
+(define (for_each f l) (cond
+    ((null? l) ())
     ((f (car l)) (for_each f (cdr l)))
     (else (for_each f (cdr l)))))
 
-;Ex 2.27    
+;Ex 2.27
 (define l2 (list (list 1 2) (list 3 4)))
-(define (deep_reverse l) 
+(define (deep_reverse l)
     (if (null? l) l
-        (append (deep_reverse (cdr l)) 
+        (append (deep_reverse (cdr l))
             (if (pair? (car l)) (list (deep_reverse (car l))) (cons (car l) ())))))
 
 ;Ex 2.28
-(define (inorder t) 
+(define (inorder t)
         (cond ((null? t) ())
             ((not (pair? t)) (list t))
             (else (append (inorder (car t)) (inorder (cdr t))))))
@@ -216,17 +216,17 @@
             (make_branch 3 7)
             (make_branch 9 8)))))
 
-(define (total_weight m) 
+(define (total_weight m)
     (cond ((not (pair? m)) 0)
         ((is_weighted? m) (branch_struct m))
         (else (+ (total_weight (l_branch m)) (total_weight (r_branch m))))))
 
-(define (is_balanced m) 
-    (define (torque b) 
+(define (is_balanced m)
+    (define (torque b)
         (* (branch_len b) (total_weight b)))
-        
+
     (cond ((is_branch? m) (is_balanced (branch_struct m)))
-        ((is_mobil? m) 
+        ((is_mobil? m)
             (and (= (torque (l_branch m)) (torque (r_branch m))) (is_balanced (l_branch m)) (is_balanced (r_branch m))))
         (else #t)))
 
@@ -237,7 +237,7 @@
 
 ;Ex 2.30/2.31
 (define (tree-map f t)
-    (map (lambda (t) 
+    (map (lambda (t)
         (if (pair? t) (tree-map f t) (f t)))
     t))
 
@@ -250,40 +250,40 @@
             (append rest (map (lambda (u) (cons (car s) u)) rest)))))
 
 
-(define (filter predicate sequence) 
+(define (filter predicate sequence)
     (cond ((null? sequence) nil)
         ((predicate (car sequence))
             (cons (car sequence) (filter predicate (cdr sequence))))
         (else (filter predicate (cdr sequence)))))
 (define (accumulate op initial sequence)
     (if (null? sequence) initial
-        (op (car sequence) 
+        (op (car sequence)
             (accumulate op initial (cdr sequence)))))
 
 ;Ex 2.33
-(define (map1 p sequence) 
+(define (map1 p sequence)
     (accumulate (lambda (x y) (cons (p x) y)) nil sequence))
 
-(define (append1 seq1 seq2) 
+(define (append1 seq1 seq2)
     (accumulate cons (accumulate cons nil seq2) seq1))
 
 (define (length sequence)
     (accumulate (lambda (x y) (+ y 1)) 0 sequence))
 
 ;Ex 2.34
-(define (horner-eval x coefficients) 
+(define (horner-eval x coefficients)
     (accumulate (lambda (this-coeff higher-terms) (+ (* x higher-terms) this-coeff))
         0
         coefficients))
 
 ;Ex 2.35
 (define (count-leaves t)
-    (accumulate + 0 
+    (accumulate + 0
         (map (lambda (x) (if (pair? x) (count-leaves x) 1)) t)))
 
 ;Ex 2.36
-(define (accumulate-n op init seqs) 
-    (if (null? (car seqs)) 
+(define (accumulate-n op init seqs)
+    (if (null? (car seqs))
         nil
         (cons (accumulate op init (map car seqs))
             (accumulate-n op init (map cdr seqs)))))
@@ -292,18 +292,18 @@
 (define mat1 (list (list 1 2 3 4) (list 4 5 6 6) (list 7 8 9 7)))
 (define vec1 (list 1 1 1 1))
 
-(define (dot-product v w) 
+(define (dot-product v w)
     (accumulate + 0 (map * v w)))
 
 ;This assumes a row vector and does not check size
-(define (matrix-*-vector m v) 
+(define (matrix-*-vector m v)
     (map (lambda (mi v) (* (accumulate + 0 mi) v)) m v))
 
 (define (transpose mat)
     (accumulate-n cons nil mat))
 
-;TODO come back to this 
-(define (matrix-*-matrix m n) 
+;TODO come back to this
+(define (matrix-*-matrix m n)
     (let ((cols (transpose n)))
         (map (lambda (ri) (accumulate-n dot-product (list ri) cols)) m)))
 
@@ -318,14 +318,14 @@
     (iter initial sequence))
 
 ;Ex 2.39
-(define (rev1 sequence) 
+(define (rev1 sequence)
     (accumulate (lambda (x y) (append y (list x))) nil (list 1 2 3 4)))
 
-(define (rev2 sequence) 
+(define (rev2 sequence)
     (fold-left (lambda (x y) (append (list y) x) nil (list 1 2 3 4))))
 
 
-(define (enumerate-interval i j) 
+(define (enumerate-interval i j)
     (cond ((= i j) (list j))
           ((< j i) nil)
         ((cons i (enumerate-interval (+ i 1) j)))))
@@ -333,7 +333,7 @@
 (define (flatmap proc seq)
     (accumulate append nil (map proc seq)))
 
-(define (remove item sequence) 
+(define (remove item sequence)
     (filter (lambda (x) (not (= x item))) sequence))
 
 (define (permutations s)
@@ -344,29 +344,29 @@
             s)))
 
 ;Ex 2.40
-(define (unique-pairs n) 
-    (flatmap (lambda (i) 
+(define (unique-pairs n)
+    (flatmap (lambda (i)
         (map (lambda (j) (list i j))
             (enumerate-interval 1 i)))
     (enumerate-interval 1 n)))
 
 ;Ex 2.41
 (define (permute-sum n s)
-    (define (pair-sums? p s) 
+    (define (pair-sums? p s)
         (= (+ (car p) (cadr p)) s))
     (filter (lambda (p) (pair-sums? p s)) (unique-pairs n)))
 
 ;Ex 2.42
-(define (contains-pair? set p) 
+(define (contains-pair? set p)
     (there-exists? set (lambda (i) (and (pair? i) (and (= (car p) (car i)) (= (cdr p) (cdr i)))))))
 (define (set-intersects? set1 set2)
     (there-exists? (map (lambda (p) (contains-pair? set2 p)) set1) (lambda (x) x)))
-    
+
 (define (queens board-size)
     (define empty-board nil)
     (define (safe? k positions)
-        (define (generate-backwards-collisions position) 
-            (define (generate-horiz position) 
+        (define (generate-backwards-collisions position)
+            (define (generate-horiz position)
                 (map (lambda (col) (cons col (cdr position))) (enumerate-interval 1 (dec (car position)))))
             (define (generate-diags position)
                 (define (generate-diags-iter k_i position)
@@ -377,7 +377,7 @@
         (append (generate-horiz position) (generate-diags position)))
         (let ((position (car (last-pair positions))))
             (not (set-intersects? positions (generate-backwards-collisions position)))))
-            
+
     (define (adjoin-position new-row k rest-of-queens)
         (append rest-of-queens (list (cons k new-row))))
 
@@ -385,9 +385,9 @@
         (if (= k 0)
             (list empty-board)
             (filter (lambda (positions) (safe? k positions))
-                (flatmap (lambda (rest-of-queens) 
-                    (map (lambda (new-row) (adjoin-position new-row k rest-of-queens)) 
-                        (enumerate-interval 1 board-size))) 
+                (flatmap (lambda (rest-of-queens)
+                    (map (lambda (new-row) (adjoin-position new-row k rest-of-queens))
+                        (enumerate-interval 1 board-size)))
                     (queen-cols (- k 1))))))
     (queen-cols board-size))
 
@@ -441,26 +441,213 @@
 
 ;Ex 2.61
 (define (adjoin-set-ordered x s)
-    (define (adjoin-set-helper x s s_pre)
-        (if (> (car s) x) 
-            (if (null? (cadr s)) (append s (list x))
-                (append (append s (list x)) s_pre))
-            (adjoin-set-helper x (append s_pre (list (car s))))))
-    (if (element-of-set? x s) s
-        (adjoin-set-helper x s nil)))
+    (cond ((element-of-set? x s) s)
+        ((< x (car s)) (cons x s))
+        (else (cons (car s) (adjoin-set-ordered x (cdr s))))))
 
 ;Ex 2.62
-(define (union-set-ordered s1 s2) 
+(define (union-set-ordered s1 s2)
     (cond ((null? s1) s2)
         ((null? s2) s1)
+        ((null? (car s1)) s2)
+        ((null? (car s2)) s1)
         (else (let ((x1 (car s1)) (x2 (car s2)))
-            (cond ((= x1 x2) (cons x1 
+            (cond ((= x1 x2) (cons x1
                 (union-set-ordered (cdr s1) (cdr s2))))
-                ((< x1 x2)
-                    (if (> x1 (cadr s2)) (append (list x2 x1) (union-set-ordered (cdr s1) s2))
-                        (cons x2 (union-set-ordered s1 (cdr s2)))))
-                (else (if (> x2 (cadr s1)) (append (list x1 x2) (union-set-ordered s1 (cdr s2)))
-                        (cons x1 (union-set-ordered (cdr s1) s2)))))))))
+                ((< x1 x2) (cons x1 (union-set-ordered (cdr s1) s2)))
+                (else (cons x2 (union-set-ordered s1 (cdr s2)))))))))
 
 ;Ex 2.63
+(define (entry tree) (car tree))
+(define (left-branch tree) (cadr tree))
+(define (right-branch tree) (caddr tree))
+(define (make-tree entry left right)
+    (list entry left right))
+(define (make-leaf entry)
+    (list entry nil nil))
+
+(define (tree->list-1 tree)
+    (if (null? tree) '()
+        (append (tree->list-1 (left-branch tree))
+            (cons (entry tree)
+                (tree->list-1 (right-branch tree))))))
+
+(define (tree->list-2 tree)
+    (define (copy-to-list tree result-list)
+        (if (null? tree) result-list
+            (copy-to-list (left-branch tree)
+                (cons (entry tree) (copy-to-list (right-branch tree)
+                        result-list)))))
+    (copy-to-list tree nil))
+
+(define t1 (make-tree 7 (make-tree 3 (make-leaf 1) (make-leaf 5)) (make-tree 9 '() (make-leaf 11))))
+(define t2 (make-tree 3 (make-leaf 1) (make-tree 7 (make-leaf 5) (make-tree 9 '() (make-leaf 11)))))
+
+;a. The two procedures should both produce an in-order traversal of the tree
+;b. They should have the same order of growth, but traverse the tree in a different order when executing
+
+;Ex 2.64
+(define (list->tree elements)
+    (car (partial-tree elements (length elements))))
+
+(define (partial-tree elts n)
+    (if (= n 0)
+        (cons nil elts)
+        (let ((left-size (quotient (- n 1) 2)))
+        (let ((left-result (partial-tree elts left-size)))
+        (let ((left-tree (car left-result))
+            (non-left-elts (cdr left-result))
+            (right-size (- n (inc left-size)))
+        (let ((this-entry (car non-left-elts))
+            (right-result (partial-tree (cdr non-left-elts) right-size)))
+        (let ((right-tree (car right-result))
+            (remaining-elts (cdr right-result)))
+            (cons (make-tree this-entry left-tree right-tree) remaining-elts)))))))))
+
+;a. This works by calculating the number of elements in the left subtree to make the tree balanced, generating a left subtree,
+;determining the remaining elements in the right subtree, generating the right subtree, then combining the two trees and
+;returning the remaining number of elements not in the tree (which should be 0)
+;b. Each call to partial-tree makes two subcalls to partial-tree each of size n/2. The total time spent within each call is constant.
+;The total number of calls at each level is 2^L. There are log(n) levels, thus the total runtime is O(2^(log(n))) = O(n).
+
+;Ex 2.66
+(define (lookup k tree)
+    (if (null? tree) nil
+        (let ((k_curr (key tree)))
+            (cond ((= k_curr k) (value tree))
+                ((< k_curr k) (lookup k (left-branch tree)))
+                (else (lookup k (right-branch tree)))))))
+
+;As cool as huffman codes are there is no way I am spending more time doing data structures.
+
+
+;Ex 2.73
+(define (deriv exp var)
+    (cond ((number? exp) 0)
+        ((variable? exp) (if (same-variable? exp var) 1 0))
+        (else ((get 'deriv (operator exp)) (operands exp) var))))
+
+(define (operator exp) (car exp))
+(define (operands exp) (cdr exp))
+
+    ;a. We have transformed the prievious procedure which manually determines the type of 'exp' to a
+    ;generic function which dispatches on the type of exp. Because exp may be a number literal and not a variable,
+    ;we cannot separate those functions out into a data-directed dispatch like
+    ;we did with the deriv function itself, as a number does not have a tag.
+
+    ;b.
+(define (deriv-sum exp1 exp2)
+    (make-sum (deriv (addend exp) var)
+        (deriv (augend exp) var)))
+
+(put 'deriv 'sum deriv-sum)
+
+(define (deriv-product exp1 exp2)
+    (make-sum (make-product (multiplier exp)
+            (deriv (multiplicand exp) var))
+        (make-product (deriv (multiplier exp) var) (multiplicand exp))))
+
+(put 'deriv 'product deriv-product)
+
+    ;c. no thanks
+    ;d.We would just change the way we put it in the vtable
+
+;Ex 2.74
+    ;a
+(define (get-record employee-name record-file)
+    (filter (lambda (employee) (= (get-name employee) employee-name))
+        (get 'get-employees (record-structure record-file))))
+    ;Each employee file must provide a record-structure accessible by the generic function rec-rdstructure.
+    ;They must also have a function which takes a record file and returns a list of employees.
+
+    ;b.
+(define (get-salary employee-record)
+    (get 'get-salary (employee-record-structure employee-record)))
+
+    ;c.
+(define (find-employee-record employee-name all-record-files)
+    (filter (lambda (employee) (= (get-name employee) employee-name))
+        (flatmap (lambda (record-file) (get 'get-employees (record-structure record-file)))
+        all-record-files)))
+
+    ;d. The company only needs to provide a get-employees function that returns a list of all employees
+    ;in the given record file. Each employee record must have a get-name tag.
+
+;Ex. 2.75
+(define (make-from-mag-ang r a)
+    (define (dispatch op)
+        (cond ((eq? op 'real-part) (* r (cos a)))
+            ((eq? op 'imag-part) (* r (sin a)))
+            ((eq? op 'magnitude) r)
+            ((eq? op 'angle) a)
+            (else (error "Unknown op -- MAKE-FROM-MAG-ANG" op))))
+    dispatch)
+
+;Ex 2.76
+;Generic operations with manual dispatch require the most work to add new functions or datatypes as everything must be edited
+;Data-directed styles involving a vtable are ideal for treating operations as first-class objects because the programmer can
+;focus on the operations themselves and abstract away the data structures with relative ease. Message-passing style represents
+;a data-first approach which makes data structures the focus of the programmer. Adding new operations is a bit more difficult
+;as each data structure must be visited but it is easier to think of each data structure as being its own full-fledged object.
+;New types benefit from message-passing, and data-directed is best for adding new operations.
+
+;Ex. 2.77
+;Scheme will first lookup the function for complex numbers. This in turn looks up the lookup for complex numbers, which will
+;determine the representation (rect or polar) and call the appropriate function in the polar/rect packages.
+
+;Ex. 2.78
+(define (attach-tag type-tag contents)
+    (if (eq? type-tag 'scheme-number) contents
+        (cons type-tag contents)))
+
+(define (type-tag datum)
+    (if (number? datum) 'scheme-number
+        (if (pair? datum)
+            (car datum)
+            (error "bad datum" datum))))
+
+(define (contents datum)
+    (if (number? datum) datum
+        (if (pair? datum)
+            (cdr datum)
+            (error "bad datum" datum))))
+
+(define (apply-generic op . args)
+    (let ((type-tags (map type-tag args)))
+        (let ((proc (get op type-tags)))
+            (if proc
+                (apply proc (map contents args))
+                (error "No method for these types -- APPLY-GENERIC" (list op type-tags))))))
+
+;Ex 2.79
+(define (equ? a b)
+    (apply-generic 'equ? a b))
+
+(put 'equ? '(scheme-number scheme-number) =)
+
+(define (equ?-rational a b)
+    (and (= (numer a) (numer b)) (= (denom a) (denom b))))
+(put 'equ? '(rational rational) equ?-rational)
+
+(define (equ?-complex a b)
+    (and (= (real-part a) (real-part b)) (= (imag-part a) (imag-part b))))
+(put 'equ? '(complex complex) equ?-complex)
+
+;Ex 2.80
+(define (=zero? n)
+    (apply-generic '=zero? n))
+
+(put '=zero? '(scheme-number scheme-number) (lambda (x) (= x 0)))
+
+(define (=zero?-rational n)
+    (and (= (numer n) 0)))
+(put '=zero? '(rational rational) =zero?-rational)
+
+(define (=zero?-complex n)
+    (= (magnitude n) 0))
+(put '=zero? '(complex complex) =zero?-complex)
+
+;Ex 2.81
+
+
 
