@@ -1,3 +1,5 @@
+;Chapter 2
+
 ;Base ops
 (define nil `())
 (define (avg x y) (/ (+ x y ) 2))
@@ -13,7 +15,7 @@
             ((= n 1) b)
             ((isOdd n) (* b (fast-exp_iter b (- n 1))))
             (else (square (fast-exp_iter b (/ n 2))))))
-(fast-exp_iter b n))
+    (fast-exp_iter b n))
 (define (mod a b) (remainder a b))
 (define true #t)
 (define false #f)
@@ -497,12 +499,12 @@
         (let ((left-result (partial-tree elts left-size)))
         (let ((left-tree (car left-result))
             (non-left-elts (cdr left-result))
-            (right-size (- n (inc left-size)))
+            (right-size (- n (inc left-size))))
         (let ((this-entry (car non-left-elts))
             (right-result (partial-tree (cdr non-left-elts) right-size)))
         (let ((right-tree (car right-result))
             (remaining-elts (cdr right-result)))
-            (cons (make-tree this-entry left-tree right-tree) remaining-elts)))))))))
+            (cons (make-tree this-entry left-tree right-tree) remaining-elts))))))))
 
 ;a. This works by calculating the number of elements in the left subtree to make the tree balanced, generating a left subtree,
 ;determining the remaining elements in the right subtree, generating the right subtree, then combining the two trees and
@@ -522,6 +524,9 @@
 
 
 ;Ex 2.73
+(define (put op type item) nil)
+(define (get op type item) nil)
+
 (define (deriv exp var)
     (cond ((number? exp) 0)
         ((variable? exp) (if (same-variable? exp var) 1 0))
@@ -557,12 +562,12 @@
 (define (get-record employee-name record-file)
     (filter (lambda (employee) (= (get-name employee) employee-name))
         (get 'get-employees (record-structure record-file))))
-    ;Each employee file must provide a record-structure accessible by the generic function rec-rdstructure.
+    ;Each employee file must provide a record-structure accessible by the generic function recordstructure.
     ;They must also have a function which takes a record file and returns a list of employees.
 
     ;b.
-(define (get-salary employee-record)
-    (get 'get-salary (employee-record-structure employee-record)))
+(define (get-salary employee-name employee-record-file)
+    (get 'get-salary (get-record employee-name employee-record-file)))
 
     ;c.
 (define (find-employee-record employee-name all-record-files)
@@ -597,17 +602,18 @@
 
 ;Ex. 2.78
 (define (attach-tag type-tag contents)
-    (if (eq? type-tag 'scheme-number) contents
+    (if (or (eq? type-tag 'scheme-number) (eq? type-tag 'boolean)) contents
         (cons type-tag contents)))
 
 (define (type-tag datum)
     (if (number? datum) 'scheme-number
+    (if (boolean? datum) 'boolean
         (if (pair? datum)
             (car datum)
-            (error "bad datum" datum))))
+            (error "bad datum" datum)))))
 
 (define (contents datum)
-    (if (number? datum) datum
+    (if (or (number? datum) (boolean? datum)) datum
         (if (pair? datum)
             (cdr datum)
             (error "bad datum" datum))))
@@ -637,17 +643,155 @@
 (define (=zero? n)
     (apply-generic '=zero? n))
 
-(put '=zero? '(scheme-number scheme-number) (lambda (x) (= x 0)))
+(put '=zero? '(scheme-number) (lambda (x) (= x 0)))
 
 (define (=zero?-rational n)
     (and (= (numer n) 0)))
-(put '=zero? '(rational rational) =zero?-rational)
+(put '=zero? '(rational) =zero?-rational)
 
 (define (=zero?-complex n)
     (= (magnitude n) 0))
-(put '=zero? '(complex complex) =zero?-complex)
+(put '=zero? '(complex) =zero?-complex)
 
 ;Ex 2.81
+(define (apply-generic op . args)
+    (let ((type-tags (map type-tag args)))
+        (let ((proc (get op type-tags)))
+            (if proc
+                (apply proc (map contents args))
+                (if (= (length args) 2)
+                    (let ((type1 (car type-tags)) (type2 (cadr type-tags)) (a1 (car args)) (a2 (cadr args)))
+                    (let ((t1->t2 (get-coercion type1 type2)) (t2->t1 (get-coercion type2 type1)))
+                        (cond (t1->t2 (apply-generic op (t1->t2 a1) a2))
+                            (t2->t1 (apply-generic op a1 (t2->t1 a2)))
+                            (else (error "No method for these types" (list op type-tags))))))
+                    (error "no method for these types" (list op type-tags)))))))
 
+;With Louis' addition it will recurse infinitely attempting to coerce the type to the same type.
+;b. It should work correctly as is because it checks if the procedure exists before attempting coercion.
 
+;Ex 2.82
+;In order to be absolutely general we would have to try every possible coercion recursively.
 
+(define (inner-product s1 s2) 
+    (flatmap (lambda (x1) (map (lambda (x2) (cons x1 x2)) s2)) s1))
+
+(define (swap arg-new arg-old s)
+    (if (= (car s) arg-old) (cons arg-new (cdr s))
+        (cons (car s) (swap arg-new arg-old (cdr s)))))
+
+(define (first-not-null l)
+    (if (null? l) nil 
+        (if (car l) (car l)
+            (first-not-null (cdr l)))))
+
+(define (apply-generic-coercion op . args)
+    (let ((type-tags (map type-tag args)) (stripped-args (map contents args)))
+        (let ((proc (get op type-tags)))
+            (if proc
+                (apply proc stripped-args)
+                (let ((coercion-combos (map (lambda (p) (get-coercion (car p) (cdr p))) (inner-product type-tags type-tags)))
+                        (arg-order (flatmap (lambda (x1) (map (lambda (x2) x2) stripped-args)) stripped-args))
+                        (coerced-args (map apply coercion-combos arg-order))
+                        (first-successful (first-not-null (map (lambda (arglist) (apply-generic-coercion op arglist)) 
+                            (map (lambda (arg-new arg-old) (swap arg-new arg-old args)) arg-order coerced-args)))))
+                    (if first-successful first-successful
+                        (error "No method for these types" (list op type-tags))))))))
+
+;Ex 2.83
+;This operation is like casting to a more specialized type and is always safe
+
+(define (raise x)
+    (let ((tag (type-tags x)) (raise-op (get 'raise tag)))
+        (if raise-op (raise-op x) nil)))
+
+(define (raise-integer z)
+    (attach-tag 'rational (make-rational z 1)))
+
+(define (raise-rational z)
+    (attach-tag 'real (/ ((get 'numer 'rational) z) ((get 'denom 'rational) z))))
+
+(define (make-complex-from-real-imag x y)
+    ((get 'make-from-real-imag 'complex) x y))
+(define (make-complex-from-mag-ang x y)
+    ((get 'make-from-mag-ang 'complex) x y))
+
+(define (raise-real z)
+    (attach-tag 'complex (make-complex-from-real-imag z 0)))
+
+;Ex 2.84
+;This is super inefficient because it actually raises instead of just raising the tag
+
+(define (raise-tag z)
+    (let ((raised (raise z)))
+    (if raised (type-tag raised) nil)))
+
+(define (raise-until z tag-goal)
+    (if (eq? (type-tags z) tag-goal) z
+        (let ((raise-op (get 'raise type-tags z)))
+        (if raise-op (raise-until (raise-op z) tag-goal)
+            nil))))
+
+(define (find-highest-type . args)
+    (define (highest-object z1 z2)
+        (if (raise-until z1 (type-tags z2)) z2
+            (if (raise-until z2 (type-tags z1)) z1
+                (error "Tags unrelated -- HIGHEST-OBJECT" (list z1 z2)))))
+    (type-tags (accumulate (lambda (z1 z2) (highest-object z1 z2)) (car args) args)))
+
+(define (apply-generic-raise op . args)
+    (let ((type-tags (map type-tag args)) (stripped-args (map contents args)))
+        (let ((proc (get op type-tags)))
+            (if proc (apply proc stripped-args)
+                (let ((highest-type (find-highest-type args))) 
+                (let ((raised-args (map (lambda (arg) (raise-until arg highest-type)) args)))
+                (let ((raised-type-tags (map type-tag raised-args)) (raised-stripped-args (map contents raised-args)))
+                (let ((proc (get op raised-type-tags)))
+                    (if proc (apply proc raised-stripped-args)
+                        (error "No matching function for args -- APPLY-GENERIC-RAISED" (list op args)))))))))))
+
+;Ex 2.85
+;In general dropping may lose information which we must test for
+
+(define (equ? a b)
+    (apply-generic-raise-simplify 'equ? a b))
+
+(define (project z)
+    (let ((tag (type-tags z)))
+    (get 'drop tag) z))
+
+(define (drop z)
+    (let ((projected (project z)))
+    (if (equ? projected (raise projected)) projected z)))
+
+(define (drop-max z)
+    (let ((dropped (drop z)))
+        (if (equ? dropped z) z 
+            (drop-max dropped))))
+
+(define (drop-complex z) 
+    (attach-tag 'real ((get 'real-part '(complex)) z)))
+
+(define (drop-real z) 
+    (attach-tag 'rational (make-rational (contents z) 1))) 
+
+;Note that this doesn't actually simplify a real to rational form which is non-trivial
+
+(put 'numer 'rational numer)
+(put 'denom 'rational denom)
+
+(define (drop-rational z)
+    (attach-tag 'scheme-number (quotient ((get 'numer 'rational) z) ((get 'denom 'rational) z))))
+
+(define (apply-generic-raise-simplify op . args)
+    (let ((type-tags (map type-tag args)) (stripped-args (map contents args)))
+        (let ((proc (get op type-tags)))
+            (if proc (map drop-max (apply proc stripped-args))
+                (let ((highest-type (find-highest-type args))) 
+                (let ((raised-args (map (lambda (arg) (raise-until arg highest-type)) args)))
+                (let ((raised-type-tags (map type-tag raised-args)) (raised-stripped-args (map contents raised-args)))
+                (let ((proc (get op raised-type-tags)))
+                    (if proc (map drop-max (apply proc raised-stripped-args))
+                        (error "No matching function for args -- APPLY-GENERIC-RAISED" (list op args)))))))))))
+
+;Simplifying every answer seems like a bit of an overreach
