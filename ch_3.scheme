@@ -1,0 +1,99 @@
+;Chapter 3
+
+;Base ops
+(define nil `())
+(define (avg x y) (/ (+ x y ) 2))
+(define (inc x) (+ x 1))
+(define (dec x) (- x 1))
+(define (square x) (* x x))
+(define (isOdd n) (= (remainder n 2) 1))
+(define (isEven n) (= (remainder n 2) 0))
+(define (pow b n)
+    (define (fast-exp_iter b n)
+        (cond ((< n 0) -1)
+            ((= n 0) 1)
+            ((= n 1) b)
+            ((isOdd n) (* b (fast-exp_iter b (- n 1))))
+            (else (square (fast-exp_iter b (/ n 2))))))
+(fast-exp_iter b n))
+(define (mod a b) (remainder a b))
+(define true #t)
+(define false #f)
+
+;Ex 3.1
+(define (make-accumulator init)
+    (lambda (x) (begin (set! init (+ init x)) init)))
+
+;Ex 3.2
+(define (make-monitored f)
+    (let ((counter 0))
+    (lambda (arg1 . args)
+        (cond ((eq? arg1 'how-many-calls?) counter)
+            ((eq? arg1 'reset-count) (set! counter 0))
+            (else (begin (set! counter (inc counter)) (apply f arg1 args)))))))
+
+;Ex 3.3 3.4
+(define (call-the-cops) (error "***CALLING THE COPS!!!***"))
+(define (make-account balance password)
+    (define (withdraw amount)
+        (if (>= balance amount)
+            (begin (set! balance (- balance amount)) balance)
+            "Insufficient funds"))
+    (define (deposit amount)
+            (begin (set! balance (+ balance amount)) balance))
+    (define (dispatch m password-in)
+        (if (eq? password-in password)
+            (begin (set! attempts-remaining 7)
+                (cond ((eq? m 'withdraw) withdraw)
+                    ((eq? m 'deposit) deposit)
+                    (else (error "Unknown request -- MAKE-ACCOUNT" m))))
+            (if (= attempts-remaining 1) (apply call-the-cops) 
+                                         (begin (set! attempts-remaining (dec attempts-remaining)) (error "Incorrect password")))))
+    (begin (set! attempts-remaining 7) dispatch))
+
+
+;TODO check
+
+;Ex 3.5
+(define (random-in-range low high)
+    (let ((range (- high low)))
+        (+ low (random range))))
+
+(define (estimate-integral p x1 x2 y1 y2 trials)
+    (define (monte-carlo trials experiment)
+        (define (iter trials-remaining trials-passed)
+            (cond ((= trials-remaining 0) (/ trials-passed trials))
+                  ((experiment) (iter (- trials-remaining 1) (+ trials-passed 1)))
+                  (else (iter (- trials-remaining 1) trials-passed))))
+        (iter trials 0))
+    (define (rand-in-p)
+        (let ((x (random-in-range x1 x2)) (y (random-in-range y1 y2)))
+            (p x y)))
+    (let ((frac-in (monte-carlo trials rand-in-p)) (area (* (- x2 x1) (- y2 y1))))
+        (* frac-in area)))
+        
+(define (test-pred x y)
+    (leq (+ (sq (- x 5)) (sq (- y 7))) (sq 3)))
+
+(estimate-integral test-pred 2 8 4 10 100)
+
+;Ex 3.8
+(define (f x)
+    (begin (set! con x)
+        (con)))
+
+;Ex 3.10
+;Interestingly, the 'let' version of the function behaves the same as the original.
+;This is because the variable balance is initially set to initial-amount, but once
+; the lambda function is run for the first time, the 'set!' operation creates a variable
+; balance which overshadows the initial let, creating the same behavior as the original.
+
+;Ex 3.11
+;Only the dispatch function is shared, the other functions and variables each have their
+; own frames.
+
+
+    
+
+
+    
