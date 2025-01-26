@@ -8,6 +8,7 @@
 (define (square x) (* x x))
 (define (isOdd n) (= (remainder n 2) 1))
 (define (isEven n) (= (remainder n 2) 0))
+(define (leq a b) (or (< a b) (= a b)))
 (define (pow b n)
     (define (fast-exp_iter b n)
         (cond ((< n 0) -1)
@@ -19,6 +20,9 @@
 (define (mod a b) (remainder a b))
 (define true #t)
 (define false #f)
+(define (append l1 l2)
+    (if (null? l1) l2
+        (cons (car l1) (append (cdr l1) l2))))
 
 ;Ex 3.1
 (define (make-accumulator init)
@@ -73,7 +77,7 @@
         (* frac-in area)))
         
 (define (test-pred x y)
-    (leq (+ (sq (- x 5)) (sq (- y 7))) (sq 3)))
+    (leq (+ (square (- x 5)) (square (- y 7))) (square 3)))
 
 (estimate-integral test-pred 2 8 4 10 100)
 
@@ -92,8 +96,65 @@
 ;Only the dispatch function is shared, the other functions and variables each have their
 ; own frames.
 
+;Ex 3.12
+;(b)
+;(b c d)
 
+
+;Ex 3.13
+;Loop
+
+;Ex 3.14
+;It reverses the list
+;(d c b a)
     
+;Ex 3.16
+;Never: (a->b->c->a)
+;3: (a->b->c->null)
+;4: (a->b->(c, c))
+;7: ((a, a) a->(b, c) b->c c->null)
 
+;Ex 3.17
+;After testing may need to use set on z (encountered list)
+(define (append-null l1 l2)
+    (if (null? (cdr l1)) (set-cdr! l1 (cons l2 '()))
+        (append-null (cdr l1) l2)))
+        
+(define (count-pairs x)
+    (let ((z (list '() '())))
+        (define (contains l x)
+            (cond ((null? l) false)
+                ((not (pair? l)) (eq? l x))
+                ((eq? (car l) x) true)
+                (else (contains (cdr l) x))))
+        (define (count-traverse x)
+            (cond ((null? x) 0)
+                ((contains z x) 0)
+                (else (begin (append-null z x)
+                    (bkpt 'append-to-z z)
+                    (if (not (pair? x)) 
+                        1
+                        (+ (count-traverse (car x)) (count-traverse (cdr x))))))))
+    (count-traverse x)))
+
+(define l1 (cons 'a 'b))
+(define la (list 'a 'b 'c))
+(define l2 (cons (list 'a 'b) (list 'a 'b)))
+(define l3 (cons l1 l1))
+
+;Ex 3.19
+(define (is-cycle c)
+    (define (cycle-traverse p1 p2)
+        (cond ((eq? p1 p2) true)
+            ((not (pair? p1)) false)
+            ((not (pair? p2)) false)
+            (else (or (cycle-traverse (car p1) (cdr (car p2)))
+                    (cycle-traverse (car p1) (car (car p2)))
+                    (cycle-traverse (cdr p1) (cdr (cdr p2)))
+                    (cycle-traverse (cdr p1) (car (cdr p2)))))))
+    (or (cycle-traverse c (car c)) (cycle-traverse c (cdr c))))
+    
+        
+        
 
     
