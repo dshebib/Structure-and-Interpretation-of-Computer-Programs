@@ -114,27 +114,39 @@
 ;4: (a->b->(c, c))
 ;7: ((a, a) a->(b, c) b->c c->null)
 
+(define x (list 'a 'b))
+(define z1 (cons x x))
+(define z2 (cons (list 'a 'b) (list 'a 'b)))
+
+(define (element-of-set? x set)
+    (cond ((null? set) false)
+    ((eq? x (car set)) true)
+    (else (element-of-set? x (cdr set)))))
+
+(define (adjoin-set x set)
+    (if (element-of-set? x set) set
+        (cons x set)))
+
+(define (intersection-set set1 set2)
+    (cond ((or (null? set1) (null? set2)) '())
+        ((element-of-set? (car set1) set2)
+            (cons (car set1) (intersection-set (cdr set1) set2)))
+        (else (intersection-set (cdr set1) set2))))
+
+
 ;Ex 3.17
-;After testing may need to use set on z (encountered list)
-(define (append-null l1 l2)
-    (if (null? (cdr l1)) (set-cdr! l1 (cons l2 '()))
-        (append-null (cdr l1) l2)))
-        
 (define (count-pairs x)
-    (let ((z (list '() '())))
-        (define (contains l x)
-            (cond ((null? l) false)
-                ((not (pair? l)) (eq? l x))
-                ((eq? (car l) x) true)
-                (else (contains (cdr l) x))))
+    (let ((z '()))
         (define (count-traverse x)
             (cond ((null? x) 0)
-                ((contains z x) 0)
-                (else (begin (append-null z x)
-                    (bkpt 'append-to-z z)
-                    (if (not (pair? x)) 
-                        1
-                        (+ (count-traverse (car x)) (count-traverse (cdr x))))))))
+                ((not (pair? x)) 0)
+                ((element-of-set? x z) 0)
+                (else (begin
+                    (set! z (adjoin-set x z))
+                    (pp 'iter)
+                    (pp x)
+                    (pp z)
+                    (+ 1 (count-traverse (car x)) (count-traverse (cdr x)))))))
     (count-traverse x)))
 
 (define l1 (cons 'a 'b))
@@ -142,19 +154,182 @@
 (define l2 (cons (list 'a 'b) (list 'a 'b)))
 (define l3 (cons l1 l1))
 
+(define (last-pair x)
+    (if (null? (cdr x))
+        x
+        (last-pair (cdr x))))
+(define (make-cycle x)
+    (set-cdr! (last-pair x) x)
+    x)
+
+(define l_c (make-cycle la))
+
 ;Ex 3.19
+;This is a fun one :) (O(1) space linked-list cycle)
 (define (is-cycle c)
     (define (cycle-traverse p1 p2)
-        (cond ((eq? p1 p2) true)
-            ((not (pair? p1)) false)
-            ((not (pair? p2)) false)
-            (else (or (cycle-traverse (car p1) (cdr (car p2)))
-                    (cycle-traverse (car p1) (car (car p2)))
-                    (cycle-traverse (cdr p1) (cdr (cdr p2)))
-                    (cycle-traverse (cdr p1) (car (cdr p2)))))))
-    (or (cycle-traverse c (car c)) (cycle-traverse c (cdr c))))
-    
-        
-        
+        (begin
+            (cond 
+                ((eq? p1 p2) true)
+                ((not (pair? p1)) false)
+                ((not (pair? p2)) false)
+                (else 
+                    (or 
+                        (if (pair? (car p2))
+                            (or 
+                                (cycle-traverse (car p1) (cdr (car p2)))
+                                (cycle-traverse (car p1) (car (car p2)))
+                            )
+                            false
+                        )
+                        (if (pair? (cdr p2))
+                            (or 
+                                (cycle-traverse (cdr p1) (cdr (cdr p2)))
+                                (cycle-traverse (cdr p1) (car (cdr p2)))
+                            )
+                            false
+                        )
+                    )
+                )
+            )
+        )
+    )
+    (or (cycle-traverse c (car c)) (cycle-traverse c (cdr c)))
+)
 
-    
+;Ex 3.20
+; x -> x:1,y:2
+; z -> x:*x, y:*y
+; z -> x:{x:17, y:2}, y:{x:17, y:2}
+; The x in frame z points to the frame defined by x,
+; so changing the value of x in that frame changes it for all references to that frame
+
+(define (frontp-q q) (car q))
+(define (rearp-q q) (cdr q))
+(define (set-frontp-q! q i) (set-car! q i))
+(define (set-rearp-q! q i) (set-cdr! q i))
+(define (empty-q? q) (null? (frontp q)))
+(define (make-q) (cons '() '()))
+(define (front-q q)
+    (if (empty-q? q)
+        (error "FRONT-Q called with an empty queue" q)
+        (car (frontp-q q))))
+(define (insert-q! q i)
+    (let ((new-pair (cons item '())))
+        (cond 
+            ((empty-q? q)
+                (set-frontp-q! q new-pair)
+                (set-rearp-q! q new-pair)
+                q)
+            (else
+                (set-cdr! (rearp q) new-pair)
+                (set-rearp-q! q new-pair)
+                q)))
+)
+
+(define (pop-q! q)
+    (cond 
+        ((empty-q? q)
+            (error "DELETE! called with an empty queue" q   ))
+        (else
+            (set-frontp! q (cdr (frontp q)))
+            q))
+)
+
+
+(define q1 (make-q))
+(insert-q! q1 'a)
+(insert-q! q1 'b)
+(insert-q! q1 'c)
+(insert-q! q1 'd)
+(front-q q1)
+(pop-q! q1)
+(front-q q1)
+
+
+;Ex 3.21
+; printing the queue will print the queue and repeat the last element twice,
+; as cdr(queue) points to the last element.
+; Additionally, even if (not (null? cdr(queue))), the queue may be empty
+; since only car(queue) needs to be null for the queue to be empty.
+(define (print-q q)
+    (define (ppq-i q)
+        (pp (frontp-q q))
+    )
+    (cond
+        ((empty-q? q)
+            (pp '()))
+        (else
+            (ppq-i q))
+    )
+)
+
+(print-q q1)
+
+;Ex 3.22
+; I kind of like this implementation better, not that it matters
+; Doesn't handle Queue(null) but that's fine
+(define (make-queue)
+  (let (
+    (front-q '())
+    (rear-q '())
+    )
+    (define (set-frontp! x)
+      (set! front-q x)
+    )
+    (define (set-rearp! x)
+      (set! rear-q x)
+    )
+    (define (empty?)
+      (null? front-q)
+    )
+    (define (front)
+      front-q
+    )
+    (define (insert i)
+      (let ((new-pair (cons item '())))
+        (begin
+          (if (empty?)
+            (set-frontp! new-pair)
+            ()
+          )
+          (set! (cdr rear-q) new-pair)
+          (set-rearp! (cdr (rear-q)))
+        )
+      )
+    )
+    (define (pop!)
+      (if (empty)
+        ()
+        (set-frontp! (cdr (front q)))
+      )
+    )
+    (define (print)
+      (pp front))
+    (define (DISPATCH argd)
+      (cond 
+        ((eq? argd 'empty?) empty?)
+        ((eq? argd 'front) front)
+        ((eq? argd 'insert) insert)
+        ((eq? argd 'pop!) pop!)
+        (else (error "Underfined operation -- MAKE-QUEUE" argd))
+      )
+    )
+  dispatch
+  )
+)
+  
+(define q2 (make-q))
+((q2 'insert!) 'a)
+((q2 'insert!) 'b)
+((q2 'insert!) 'c)
+((q2 'insert!) 'd)
+(q2 'front)
+(q2 'pop-q!)
+(q2 'front)
+(q2 'print)
+
+;Ex 3.23
+; SKIP
+
+
